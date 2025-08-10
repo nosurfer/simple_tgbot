@@ -4,3 +4,6 @@ class Form(StatesGroup):
     name = State()
     direction = State()
     about = State()
+    confirm = State()
+
+    done = State()

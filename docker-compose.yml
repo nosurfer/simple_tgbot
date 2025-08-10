@@ -1,0 +1,16 @@
+services:
+    bot:
+        build: .
+        restart: always
+        depends_on:
+            - redis
+        links:
+            - "redis"
+
+    redis:
+        image: "redis:latest"
+        healthcheck:
+            test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+            interval: 10s
+            retries: 3
+            start_period: 15s

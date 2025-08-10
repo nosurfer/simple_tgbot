@@ -8,4 +8,4 @@ router = Router()
 
 @router.message(CommandStart())
 async def StartHandler(message: Message):
-    await message.answer("Привет\! Бот сделан @ownnickname\.", reply_markup=keyboard)
+    await message.answer("Привет\! У тебя будет одна попытка\. Бот сделан @ownnickname\.", reply_markup=keyboard)
