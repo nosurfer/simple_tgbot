@@ -3,6 +3,7 @@ from typing import List
 
 class Settings(BaseSettings):
     TOKEN: str
+    REDIS: str = "redis"
     ADMINS: List[int]
 
     class Config:

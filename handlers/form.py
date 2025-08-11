@@ -5,11 +5,11 @@ from aiogram.filters import StateFilter
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from states.form import Form
-from filters.filters import AdminFilter
+from filters.filters import AdminFilter, AddedAdminFilter, MultipleFilter
 from functions.format import escape_markdown
 from keyboards.form import kb_confirm, kb_start
 from functions.config import settings
-from main import bot
+from functions.redis import list_admins, save_msg
 
 router = Router()
 
@@ -100,8 +100,9 @@ async def SendHandler(callback: CallbackQuery, state: FSMContext):
             ]
         ]
     )
-    for admin in settings.ADMINS:
-        await bot.send_message(chat_id=admin, text=msg, reply_markup=kb)
+    for admin in set(settings.ADMINS) | set(await list_admins()):
+        sent = await callback.bot.send_message(chat_id=admin, text=msg, reply_markup=kb)
+        await save_msg(user_id=callback.from_user.id, chat_id=sent.chat.id, message_id=sent.message_id)
 
     await callback.message.edit_text(text="Ваша анкета отправлена\!", reply_markup=None)
     await state.set_data({})
@@ -113,6 +114,6 @@ async def ClearHandler(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await StartHandler(callback, state)
 
-@router.callback_query(~AdminFilter(), Form.done)
+@router.callback_query(~MultipleFilter(), Form.done)
 async def DoneHandler(callback: CallbackQuery, state: FSMContext):
     await callback.answer("Вы уже отправили анкету.")

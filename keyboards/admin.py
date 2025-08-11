@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import CallbackQuery
 
@@ -47,3 +47,20 @@ async def choice_kb(callback: CallbackQuery):
             ]
         ]
     ).adjust(2,).as_markup()
+
+admin_kb = ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(
+                    text="👤 Выбрать пользователя",
+                    request_users={
+                        "request_id": 1,
+                        "user_is_bot": False,
+                        "max_quantity": 1
+                    }
+                )
+            ]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
