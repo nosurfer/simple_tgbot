@@ -1,5 +1,3 @@
 # tgbot
 
-smth here
-
-localhost -> redis!!
+## write here smth pls >_<

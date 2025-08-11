@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -103,8 +103,8 @@ async def SendHandler(callback: CallbackQuery, state: FSMContext):
     for admin in set(settings.ADMINS) | set(await list_admins()):
         sent = await callback.bot.send_message(chat_id=admin, text=msg, reply_markup=kb)
         await save_msg(user_id=callback.from_user.id, chat_id=sent.chat.id, message_id=sent.message_id)
-
-    await callback.message.edit_text(text="Ваша анкета отправлена\!", reply_markup=None)
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer("Ваша анкета отправлена\!", reply_markup=ReplyKeyboardRemove())
     await state.set_data({})
     await state.set_state(Form.done)
 
