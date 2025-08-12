@@ -42,7 +42,7 @@ async def BackHandler(message: Message, state: FSMContext):
 @router.callback_query(StateFilter(None), F.data == "start")
 async def StartHandler(event: CallbackQuery | Message, state: FSMContext):
     if isinstance(event, Message):
-        await event.answer("Как вас зовут и сколько вам лет?")
+        await event.answer("Как вас зовут и сколько вам лет?", reply_markup=kb_start)
     else:
         await event.message.answer("Как вас зовут и сколько вам лет?", reply_markup=kb_start)
     await state.set_state(Form.name)
