@@ -22,5 +22,6 @@ kb_start = ReplyKeyboardMarkup(
                 text="НАЗАД⬅️"
             )
         ]
-    ]
+    ],
+    resize_keyboard=True
 )

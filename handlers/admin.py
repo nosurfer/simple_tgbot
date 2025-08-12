@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, InlineKeyboardMarkup
 from aiogram.filters import Command
 
+from functions.config import settings
 from filters.filters import AdminFilter, AddedAdminFilter, MultipleFilter
 from keyboards.admin import denied, accepted, choice_kb, admin_kb
 from functions.redis import *
@@ -24,13 +25,13 @@ async def TypeHandler(callback: CallbackQuery):
     user_id = int(callback.data[3:])
     match T:
         case "1":
-            await callback.bot.send_message(chat_id=user_id, text="https://t.me/+PhWy1t-gkyJiYjEyj", parse_mode=None)
+            await callback.bot.send_message(chat_id=user_id, text=f"{settings.ACTORS}", parse_mode=None)
         case "2":
-            await callback.bot.send_message(chat_id=user_id, text="https://t.me/+LXIh1uuIxu40ZmMy", parse_mode=None)
+            await callback.bot.send_message(chat_id=user_id, text=f"{settings.DIRECTORS}", parse_mode=None)
         case "3":
-            await callback.bot.send_message(chat_id=user_id, text="https://t.me/+Qx8nQdzPik42M2Ey", parse_mode=None)
+            await callback.bot.send_message(chat_id=user_id, text=f"{settings.SCENARISTS}", parse_mode=None)
         case "4":
-            await callback.bot.send_message(chat_id=user_id, text="https://t.me/+ps2QuNz1_wM3OGNi", parse_mode=None)
+            await callback.bot.send_message(chat_id=user_id, text=f"{settings.PRODUCTION}", parse_mode=None)
 
     await update_messages(callback, user_id, accepted)
 
@@ -40,7 +41,7 @@ async def BufHandler(callback: CallbackQuery):
 
 @router.message(AdminFilter(), Command("admin"))
 async def add_handler(message: Message):
-    await message.answer("Выберите пользователя, чтобы добавить/убрать его из администраторов\.", reply_markup=admin_kb)
+    await message.answer("Выберите пользователя, чтобы изменить статус администратора\.", reply_markup=admin_kb)
 
 @router.message(AdminFilter(), F.user_shared.request_id == 1)
 async def admin_handler_user_shared(message: Message):
@@ -73,4 +74,7 @@ async def update_messages(event: CallbackQuery, user_id: int, kb: InlineKeyboard
     for msg in await get_all_msgs(user_id=user_id):
         chat_id = msg['chat_id']
         message_id = msg['message_id']
-        await event.bot.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=kb)
+        try:
+            await event.bot.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=kb)
+        except:
+            continue

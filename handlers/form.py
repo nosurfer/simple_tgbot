@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import StateFilter
+from aiogram.filters import StateFilter, Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from states.form import Form
@@ -101,7 +101,10 @@ async def SendHandler(callback: CallbackQuery, state: FSMContext):
         ]
     )
     for admin in set(settings.ADMINS) | set(await list_admins()):
-        sent = await callback.bot.send_message(chat_id=admin, text=msg, reply_markup=kb)
+        try:
+            sent = await callback.bot.send_message(chat_id=admin, text=msg, reply_markup=kb)
+        except:
+            continue
         await save_msg(user_id=callback.from_user.id, chat_id=sent.chat.id, message_id=sent.message_id)
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer("Ваша анкета отправлена\!", reply_markup=ReplyKeyboardRemove())
@@ -113,6 +116,11 @@ async def ClearHandler(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await state.clear()
     await StartHandler(callback, state)
+
+@router.message(AdminFilter(), Command("test"))
+async def TestHandler(message: Message, state: FSMContext):
+    await state.clear()
+    await StartHandler(message, state)
 
 @router.callback_query(~MultipleFilter(), Form.done)
 async def DoneHandler(callback: CallbackQuery, state: FSMContext):
