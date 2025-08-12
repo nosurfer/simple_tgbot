@@ -1,3 +1,4 @@
+import datetime
 import redis.asyncio as redis_asyncio
 from functions.config import settings
 
@@ -57,5 +58,23 @@ async def get_all_msgs(user_id: int | str) -> list[dict[str, int]]:
     await r.delete(user_id)
     return result
 
+async def can_send_message(user_id: int | str) -> bool:
+    r = await get_redis()
+    key = f"last_message:{user_id}"
+    last_ts = await r.get(key)
+    
+    if last_ts:
+        last_time = datetime.datetime.fromtimestamp(float(last_ts))
+        now = datetime.datetime.now()
+        if (now - last_time).days < 30:
+            return False
+    return True
+
+async def mark_message_sent(user_id: int | str) -> bool:
+    r = await get_redis()
+    key = f"last_message:{user_id}"
+    now = datetime.datetime.now().timestamp()
+    res = await r.set(key, now)
+    return bool(res)
 
 

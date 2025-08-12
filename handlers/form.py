@@ -7,9 +7,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from states.form import Form
 from filters.filters import AdminFilter, AddedAdminFilter, MultipleFilter
 from functions.format import escape_markdown
-from keyboards.form import kb_confirm, kb_start
+from keyboards.form import *
 from functions.config import settings
-from functions.redis import list_admins, save_msg
+from functions.redis import list_admins, save_msg, mark_message_sent
 
 router = Router()
 
@@ -42,23 +42,36 @@ async def BackHandler(message: Message, state: FSMContext):
 @router.callback_query(StateFilter(None), F.data == "start")
 async def StartHandler(event: CallbackQuery | Message, state: FSMContext):
     if isinstance(event, Message):
-        await event.answer("Как вас зовут и сколько вам лет?", reply_markup=kb_start)
+        await event.answer("Как вас зовут и сколько вам лет? (рукописный ввод)", reply_markup=kb_start, parse_mode=None)
     else:
-        await event.message.answer("Как вас зовут и сколько вам лет?", reply_markup=kb_start)
+        await event.message.answer("Как вас зовут и сколько вам лет? (рукописный ввод)", reply_markup=kb_start, parse_mode=None)
     await state.set_state(Form.name)
 
 @router.message(Form.name, F.text)
 async def NameHandler(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
-    await message.answer("Какое направление вам интересно?")
+    await message.answer("Какое направление вам интересно? (разрешён рукописный ввод)", reply_markup=spec_choice_kb, parse_mode=None)
     await state.set_state(Form.direction)
 
 @router.message(Form.direction, F.text)
-async def DirectionHandler(message: Message, state: FSMContext):
-    await state.update_data(direction=message.text)
-    await message.answer("Расскажи о своём опыте и в чём хотели бы себя попробовать\!")
+@router.callback_query(Form.direction, F.data)
+async def DirectionHandler(event: Message | CallbackQuery, state: FSMContext):
+    if isinstance(event, CallbackQuery):
+        match event.data:
+            case "Актёр":
+                await state.update_data(direction="Актёр")
+            case "Режиссёр":
+                await state.update_data(direction="Режиссёр")
+            case "Сценарист":
+                await state.update_data(direction="Сценарист")
+            case "Продакшн":
+                await state.update_data(direction="Продакшн")
+        await event.message.answer("Расскажи о своём опыте и в чём хотели бы себя попробовать! (рукописный ввод)", parse_mode=None)
+    else:
+        await state.update_data(direction=event.text)
+        await event.answer("Расскажи о своём опыте и в чём хотели бы себя попробовать! (рукописный ввод)", parse_mode=None)
     await state.set_state(Form.about)
-
+    
 @router.message(Form.about, F.text)
 async def AboutHandler(message: Message, state: FSMContext):
     await state.update_data(about=message.text)
@@ -108,6 +121,7 @@ async def SendHandler(callback: CallbackQuery, state: FSMContext):
         await save_msg(user_id=callback.from_user.id, chat_id=sent.chat.id, message_id=sent.message_id)
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer("Ваша анкета отправлена\!", reply_markup=ReplyKeyboardRemove())
+    await mark_message_sent(callback.from_user.id)
     await state.set_data({})
     await state.set_state(Form.done)
 
@@ -124,4 +138,4 @@ async def TestHandler(message: Message, state: FSMContext):
 
 @router.callback_query(~MultipleFilter(), Form.done)
 async def DoneHandler(callback: CallbackQuery, state: FSMContext):
-    await callback.answer("Вы уже отправили анкету.")
+    await callback.answer("Анкету можно отправить только раз в месяц.")

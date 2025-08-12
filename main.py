@@ -3,10 +3,27 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
+from aiogram.types import BotCommand, BotCommandScopeChat
 
 from functions.redis import get_redis
 from functions.config import settings
 from handlers import get_routers
+
+async def setup_commands(bot: Bot):
+    commands = [
+        BotCommand(command="start", description="Начать новую анкету"),
+    ]
+    admin_commands = [
+        BotCommand(command="start", description="Начать новую анкету"),
+        BotCommand(command="admin", description="Изменить статус пользователя"),
+        BotCommand(command="test", description="Заполнить тестувую анкету"),
+    ]
+    await bot.set_my_commands(commands)
+    for admin_id in settings.ADMINS:
+        await bot.set_my_commands(
+            commands=admin_commands,
+            scope=BotCommandScopeChat(chat_id=admin_id)
+        )
 
 async def setup_storage(retries: int = 10, delay: float = 1.0):
     redis_ = await get_redis()
@@ -33,6 +50,7 @@ async def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = logging.getLogger(__name__)
 
+    await setup_commands(bot)
     await setup_handlers(dp)
     await dp.start_polling(bot)
 

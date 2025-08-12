@@ -7,3 +7,6 @@ class Form(StatesGroup):
     confirm = State()
 
     done = State()
+
+class OwnMessage(StatesGroup):
+    message = State()

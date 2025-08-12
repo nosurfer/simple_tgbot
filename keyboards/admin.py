@@ -43,6 +43,10 @@ async def choice_kb(callback: CallbackQuery):
                 InlineKeyboardButton(
                     text="Продакшн",
                     callback_data=f"T4_{callback.data[1:]}"
+                ),
+                InlineKeyboardButton(
+                    text="Свой текст",
+                    callback_data=f"T5_{callback.data[1:]}"
                 )
             ]
         ]
@@ -64,3 +68,22 @@ admin_kb = ReplyKeyboardMarkup(
         resize_keyboard=True,
         one_time_keyboard=True
     )
+
+async def send_accept(link: str) -> str:
+    [link] = link
+    return """Поздравляю! Твоя анкета была рассмотрена и ее... 
+
+Приняли! 
+
+С нетерпением ждём тебя в команде!
+
+{link}""".format(link=str(link))
+
+async def send_denied() -> str:
+    return """Приветствуем вновь! Твоя анкета была рассмотрена, но её отклонили. 
+
+Наша команда тщательно советовалась по поводу этой анкеты и приняла решение. Мы будем рады тебе, но сначала наберись опыта / конкретики в желаниях. 
+
+Через месяц ты сможешь отправить анкету вновь и, вероятнее всего, станешь одним из творцов Солнца) 
+
+До встречи!)"""
