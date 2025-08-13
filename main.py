@@ -34,7 +34,7 @@ async def setup_storage(retries: int = 10, delay: float = 1.0):
         except Exception as e:
             if attempt == retries:
                 await redis_.close()
-                raise RuntimeError(f"Cannot connect to Redis at {redis_url}: {e}") from e
+                raise RuntimeError(f"Cannot connect to Redis at {redis_}: {e}") from e
             await asyncio.sleep(delay)
     return RedisStorage(redis=redis_, key_builder=DefaultKeyBuilder(with_bot_id=True))
 
